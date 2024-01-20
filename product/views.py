@@ -147,3 +147,9 @@ class BestSell(APIView):
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
         
+class AllProduct(APIView):
+    def get(self, request):
+        products = Product.objects.all()
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
+        
