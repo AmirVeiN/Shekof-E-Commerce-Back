@@ -149,7 +149,12 @@ class BestSell(APIView):
         
 class AllProduct(APIView):
     def get(self, request):
-        products = Product.objects.all()
+        def Stock():
+            if request.GET.get("inStock") == True :
+                return 1
+            else :
+                return 0
+        products = Product.objects.filter(InStock=Stock(), InternalMemory=request.GET.get("internal"))
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
         
