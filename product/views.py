@@ -188,3 +188,10 @@ class ProductsFilter(APIView):
         products = Product.objects.filter(filter_q)
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
+
+class Search(APIView):
+    def get(self, request):
+        Name = request.GET.get("query")
+        products = Product.objects.filter(Name__icontains=Name)
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
