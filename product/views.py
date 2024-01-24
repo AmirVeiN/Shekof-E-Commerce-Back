@@ -190,8 +190,26 @@ class ProductsFilter(APIView):
         return Response(serializer.data)
 
 class Search(APIView):
+    
     def get(self, request):
-        Name = request.GET.get("query")
-        products = Product.objects.filter(Name__icontains=Name)
-        serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data)
+        
+        r = request.GET
+        
+        if 'Category' in r :
+            category = r['Category']
+            products = Product.objects.filter(Category=category)
+            serializer = ProductSerializer(products, many=True)
+            return Response(serializer.data)
+            
+        if 'Brand' in r :
+            brand = r['Brand']
+            products = Product.objects.filter(Brand=brand)
+            serializer = ProductSerializer(products, many=True)
+            return Response(serializer.data)
+            
+        if 'query' in r :
+            query = r['query']
+            products = Product.objects.filter(Name__icontains=query)
+            serializer = ProductSerializer(products, many=True)
+            return Response(serializer.data)
+            
