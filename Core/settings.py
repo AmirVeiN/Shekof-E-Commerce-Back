@@ -75,7 +75,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "Core.wsgi.application"
-# AUTH_USER_MODEL = "user.User"
+AUTH_USER_MODEL = "user.User"
 # PASSWORD_HASHERS = [
 #     "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
 # ]
