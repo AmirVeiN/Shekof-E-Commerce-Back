@@ -1,11 +1,7 @@
 SUPERUSER = 1
-STAFF = 2
-STUDENT = 3
-TUTOR = 4
+USER = 2
 
 USER_TYPE_CHOICES = (
-      (SUPERUSER, 'superuser'),
-      (STAFF, 'staff'),
-      (STUDENT, 'student'),
-      (TUTOR, 'tutor'),
-  )
+    (SUPERUSER, "superuser"),
+    (USER, "user"),
+)

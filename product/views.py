@@ -7,9 +7,13 @@ from django.db.models import Q
 from rest_framework.views import APIView
 from product.serializers import ProductSerializer
 from rest_framework.response import Response
+from rest_framework import status
 
 
 def importData(request):
+
+    permission_classes = []
+
     a = 0
     with open("cleanData.csv", "r", encoding="utf8") as file:
         reader = csv.DictReader(file)
@@ -119,97 +123,142 @@ def importData(request):
 
 
 class LatestProductsList(APIView):
+
+    permission_classes = []
+
     def get(self, request, format=None):
         products = Product.objects.all()[:7]
         serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CategoryProduct(APIView):
+
+    permission_classes = []
+
     def get(self, request, category):
         products = Product.objects.filter(Q(Brand=category))[:7]
         serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class SellProduct(APIView):
+
+    permission_classes = []
+
     def get(self, request):
         products = Product.objects.all()[:7]
         serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ProductSlug(APIView):
+
+    permission_classes = []
+
     def get(self, request, product_slug):
         products = Product.objects.get(Slug=product_slug)
         serializer = ProductSerializer(products)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class BestSell(APIView):
+
+    permission_classes = []
+
     def get(self, request):
         products = Product.objects.all()[2:7]
         serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class AllProduct(APIView):
+
+    permission_classes = []
+
     def get(self, request):
         products = Product.objects.all()
         serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import status
+from .serializers import (
+    ProductSerializer,
+)  # Assuming ProductSerializer is defined elsewhere
+from .models import Product  # Assuming Product model is defined elsewhere
 
 
 class ProductsFilter(APIView):
-    def get(self, request):
-        
+    permission_classes = []
+
+    def post(self, request):
         filters = {}
-        
-        inStock = request.GET.get("inStock")
-        brand = request.GET.get("brand")
-        ram = request.GET.get("ram")
-        internal = request.GET.get("Internal")
-        pricemin = request.GET.get("min")
-        pricemax = request.GET.get("max")
-        
-        if inStock != "undefined":
-            filters['InStock'] = inStock
-        if brand != "undefined":
-            filters['Brand'] = brand
-        if ram != "undefined":
-            filters['Ram'] = ram
-        if internal != "undefined":
-            filters['InternalMemory'] = internal
-        if pricemin != "undefined" and pricemax != "undefined":
-            filters['Price__range'] = pricemin,pricemax
-        
-        filter_q = Q(**filters)
-        
-        products = Product.objects.filter(filter_q)
+
+        try:
+            in_stock = request.data.get("inStock", None)
+            brand = request.data.get("brand", None)
+            ram = request.data.get("ram", None)
+            internal = request.data.get("internal", None)
+            price_min = request.data.get("min", None)
+            price_max = request.data.get("max", None)
+        except KeyError:
+            return Response(
+                {"error": "Missing required filter parameters"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if in_stock is not None:
+            filters["InStock"] = in_stock
+        if brand is not None:
+            filters["Brand"] = brand
+        if ram is not None:
+            filters["Ram"] = ram
+        if internal is not None:
+            filters["InternalMemory"] = internal
+        if price_min is not None and price_max is not None:
+            filters["Price__range"] = (price_min, price_max)
+
+        if not filters:
+            return Response(
+                {"message": "No filters provided"}, status=status.HTTP_200_OK
+            )
+
+        q_object = Q(**filters)
+        products = Product.objects.filter(q_object)
+
         serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class Search(APIView):
-    
+
+    permission_classes = []
+
     def get(self, request):
-        
+
         r = request.GET
-        
-        if 'Category' in r :
-            category = r['Category']
+
+        if "Category" in r:
+            category = r["Category"]
             products = Product.objects.filter(Category=category)
             serializer = ProductSerializer(products, many=True)
             return Response(serializer.data)
-            
-        if 'Brand' in r :
-            brand = r['Brand']
+
+        if "Brand" in r:
+            brand = r["Brand"]
             products = Product.objects.filter(Brand=brand)
             serializer = ProductSerializer(products, many=True)
             return Response(serializer.data)
-            
-        if 'query' in r :
-            query = r['query']
+
+        if "query" in r:
+            query = r["query"]
             products = Product.objects.filter(Name__icontains=query)
             serializer = ProductSerializer(products, many=True)
             return Response(serializer.data)
-            
+
+        return Response(status=status.HTTP_400_BAD_REQUEST)
