@@ -4,5 +4,8 @@
             "name": "disk",
             "mountTo": "data"
         }
-    ]
+    ],
+    "django": {
+        "settingsFile": "Core/settings.py"
+    }
 }
