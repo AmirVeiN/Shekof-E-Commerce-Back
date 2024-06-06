@@ -82,8 +82,8 @@ class CreateUser(APIView):
             if request.data['password'] == request.data['repassword'] :
                 user = User.objects.create(
                     phone=int(request.data["phone"]),
-                    firstName=request.data["firstName"],
-                    lastName=request.data["lastName"],
+                    first_name=request.data["fName"],
+                    last_name=request.data["lName"],
                     email=request.data["email"],
                     is_superuser=False,
                     is_staff=False,

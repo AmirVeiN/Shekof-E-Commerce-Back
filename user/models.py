@@ -10,8 +10,6 @@ import json
 
 class User(AbstractUser):
     phone = models.IntegerField(unique=True)
-    fName = models.CharField(max_length=50)
-    lName = models.CharField(max_length=50)
     email = models.EmailField(max_length=50, unique=True)
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -22,7 +20,7 @@ class User(AbstractUser):
 
     USERNAME_FIELD = "phone"
 
-    REQUIRED_FIELDS = ["fName", "lName", "email"]
+    REQUIRED_FIELDS = ["first_name", "last_name", "email"]
 
     objects = UserManager()
 
