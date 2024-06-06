@@ -78,30 +78,24 @@ class CreateUser(APIView):
 
     def post(self, request, format=None):
 
-        try :
-            if request.data['password'] == request.data['repassword'] :
-                user = User.objects.create(
-                    phone=int(request.data["phone"]),
-                    first_name=request.data["fName"],
-                    last_name=request.data["lName"],
-                    email=request.data["email"],
-                    is_superuser=False,
-                    is_staff=False,
-                    is_active=True,
-                    user_type=2,
-                )
-
-                user.set_password(request.data["password"])
-                user.save()
-
-                return Response(status=status.HTTP_201_CREATED)
-            
-            else :
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+        if request.data['password'] == request.data['repassword'] :
+            user = User.objects.create(
+                phone=int(request.data["phone"]),
+                email=request.data["email"],
+                first_name=request.data["first_name"],
+                last_name=request.data["last_name"],
+                is_superuser=False,
+                is_staff=False,
+                is_active=True,
+                user_type=2,
+            )
+            user.set_password(request.data["password"])
+            user.save()
+            return Response(status=status.HTTP_201_CREATED)
         
-        except :
-        
-            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+        else :
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
 
 class PasswordForget(APIView):
 
