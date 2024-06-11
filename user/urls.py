@@ -5,4 +5,5 @@ urlpatterns = [
     path("phone/send/", views.SendCode.as_view()),
     path("user/create/", views.CreateUser.as_view()),
     path("user/fill/information/", views.FillInformation.as_view()),
+    path("user/me/", views.UserInformation.as_view()),
 ]

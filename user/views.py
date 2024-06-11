@@ -8,9 +8,10 @@ from user.models import PhoneCode, User
 from user.permissions import IsTypeOneUser
 from user.serializers import CodePhoneSerializer
 from sms_ir import SmsIr
-
+import jwt
+from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import AccessTokenSerializer, UserFillSerializer
+from .serializers import AccessTokenSerializer, UserFillSerializer, UserSerializer
 
 class SendCode(APIView):
 
@@ -113,6 +114,26 @@ class FillInformation(APIView):
             serializer.save()
 
             return Response({"ok" : "user updated"}, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+class UserInformation(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        
+        try:
+            decoded_payload = jwt.decode(request.headers["Authorization"].split(" ")[1], settings.SECRET_KEY, algorithms=['HS256'])
+
+            user_id = decoded_payload['user_id']
+
+            user = User.objects.get(pk=user_id)
+
+            serializer = UserSerializer(user)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)

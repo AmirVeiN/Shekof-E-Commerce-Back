@@ -262,3 +262,20 @@ class Search(APIView):
             return Response(serializer.data)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class Wishlist(APIView):
+
+    permission_classes = []
+
+    def post(self, request):
+
+        product_ids = request.data["product_ids"]
+
+        int_product_ids = [int(product_id) for product_id in product_ids]
+
+        products = Product.objects.filter(id__in=int_product_ids)
+
+        serializer = ProductSerializer(products, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
