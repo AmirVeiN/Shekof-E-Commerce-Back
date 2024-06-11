@@ -10,7 +10,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("is_staff", False)
         extra_fields.setdefault("is_active", True)
         extra_fields.setdefault("user_type", user_constants.USER)
-        user = self.model(phone=phone, **extra_fields)
+        user = self.model(phone=phone, username=phone, **extra_fields)
         user.set_password(password)
         user.save()
         return user
@@ -24,7 +24,7 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("user_type", user_constants.SUPERUSER)
         if extra_fields.get("is_superuser") is not True:
             raise ValueError("Superuser must have is_superuser=True.")
-        user = self.model(phone=phone, **extra_fields)
+        user = self.model(phone=phone, username=phone, **extra_fields)
         user.set_password(password)
         user.save()
         return user

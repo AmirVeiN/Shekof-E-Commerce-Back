@@ -9,8 +9,9 @@ import json
 
 
 class User(AbstractUser):
-    phone = models.IntegerField(unique=True)
-    email = models.EmailField(max_length=50, unique=True)
+    phone = models.CharField(max_length=11, unique=True)
+    email = models.EmailField(max_length=50, unique=True, null=True, blank=True)
+    codeMeli = models.CharField(max_length=10, unique=True, null=True, blank=True)
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
@@ -19,8 +20,6 @@ class User(AbstractUser):
     )
 
     USERNAME_FIELD = "phone"
-
-    REQUIRED_FIELDS = ["email"]
 
     objects = UserManager()
 
@@ -32,7 +31,9 @@ class PhoneCode(models.Model):
     phone = models.IntegerField()
     code = models.IntegerField()
     run_at = models.DateTimeField(auto_now_add=True)
-    expiration_at = models.DateTimeField(default=timezone.now() + timedelta(minutes=5))
+    expiration_at = models.DateTimeField(
+        default=timezone.now() + timedelta(minutes=5), editable=False
+    )
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

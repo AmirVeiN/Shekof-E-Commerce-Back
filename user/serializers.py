@@ -1,5 +1,4 @@
 from rest_framework import serializers
-
 from user.models import User, PhoneCode
 
 
@@ -12,6 +11,10 @@ class UserSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "phone",
+            "email",
+            "codeMeli",
+            "first_name",
+            "last_name",
             "date_joined",
             "user_type",
         )
@@ -24,3 +27,20 @@ class CodePhoneSerializer(serializers.ModelSerializer):
     class Meta:
         model = PhoneCode
         fields = ["code", "phone"]
+
+
+class AccessTokenSerializer(serializers.Serializer):
+    access = serializers.CharField()
+    refresh = serializers.CharField()
+
+
+class UserFillSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = (
+            "email",
+            "codeMeli",
+            "first_name",
+            "last_name",
+        )

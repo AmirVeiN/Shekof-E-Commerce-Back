@@ -32,7 +32,6 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
-    "djoser",
     "django_celery_beat",
     "django_celery_results",
     "user",
@@ -146,12 +145,6 @@ REST_FRAMEWORK = {
     ),
 }
 
-DJOSER = {
-    "LOGIN_FIELD": "phone",
-    "SERIALIZERS": {
-        "current_user": "user.serializers.UserSerializer",
-    },
-}
 
 CELERY_BROKER_URL = "redis://127.0.0.1:6379"
 CELERY_ACCEPT_CONTENT = ["application/json"]

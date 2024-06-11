@@ -9,8 +9,10 @@ from user.permissions import IsTypeOneUser
 from user.serializers import CodePhoneSerializer
 from sms_ir import SmsIr
 
+from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import AccessTokenSerializer, UserFillSerializer
 
-class PhoneConfirm(APIView):
+class SendCode(APIView):
 
     permission_classes = []
 
@@ -26,7 +28,6 @@ class PhoneConfirm(APIView):
         )
 
         if serializer.is_valid():
-            serializer.save()
 
             sms_ir = SmsIr(
                 "o1Affme8CeJfdW8OuPMv1qo1f1JKDIy0vT7MKLvJvfkF6pgnre2ugXghVeAdQcKz",
@@ -46,14 +47,15 @@ class PhoneConfirm(APIView):
 
             if sms.status_code == 200 :
 
-                return Response(status=status.HTTP_200_OK)
+                serializer.save()
+                return Response({"ok":"code send"} ,status=status.HTTP_200_OK)
             else :
                 
-                return Response(status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error":"sms.ir not found"} ,status=status.HTTP_400_BAD_REQUEST)
             
         return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
 
-class CheckPhone(APIView):
+class CreateUser(APIView):
 
     permission_classes = []
 
@@ -62,63 +64,55 @@ class CheckPhone(APIView):
         try:
 
             exits = PhoneCode.objects.get(code=request.data["code"],phone=request.data["phone"])
-            
-            if exits:
-                return Response(status=status.HTTP_200_OK)
-            
-            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
 
+            try :
+                user_valid = User.objects.get(phone=request.data["phone"])
+                
+                if exits and user_valid:
+                    refresh = RefreshToken.for_user(user_valid)
+                    serializer = AccessTokenSerializer(data={'access': str(refresh.access_token), "refresh": str(refresh)})
+                    serializer.is_valid(raise_exception=True)
+                    token = serializer.validated_data
+                    exits.delete()
+
+                return Response(token ,status=status.HTTP_200_OK)
+            
+            except :
+                
+                if exits:
+                    user = User.objects.create(
+                    phone=request.data["phone"],
+                    username = request.data["phone"],
+                    is_superuser=False,
+                    is_staff=False,
+                    is_active=True,
+                    user_type=2)
+                    user.save()
+                    exits.delete()
+                    
+                    refresh = RefreshToken.for_user(user)
+                    serializer = AccessTokenSerializer(data={'access': str(refresh.access_token), "refresh": str(refresh)})
+                    serializer.is_valid(raise_exception=True)
+                    token = serializer.validated_data
+                    return Response(token ,status=status.HTTP_201_CREATED)
         except:
 
-            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+            return Response({"error":"code not found or expired"} ,status=status.HTTP_406_NOT_ACCEPTABLE)
 
-class CreateUser(APIView):
+class FillInformation(APIView):
 
-    permission_classes = []
-
-    def post(self, request, format=None):
-
-        if request.data['password'] == request.data['repassword'] :
-            user = User.objects.create(
-                phone=int(request.data["phone"]),
-                email=request.data["email"],
-                first_name=request.data["first_name"],
-                last_name=request.data["last_name"],
-                is_superuser=False,
-                is_staff=False,
-                is_active=True,
-                user_type=2,
-            )
-            user.set_password(request.data["password"])
-            user.save()
-            return Response(status=status.HTTP_201_CREATED)
-        
-        else :
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-class PasswordForget(APIView):
-
-    permission_classes = []
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, format=None):
 
         try:
+            user = User.objects.get(pk=request.user.id)
 
-            exits = PhoneCode.objects.get(
-                code=request.data["code"],phone=request.data["phone"]
-            )
+            serializer = UserFillSerializer(user, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
 
-        except:
+            return Response({"ok" : "user updated"}, status=status.HTTP_200_OK)
 
-            return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
-
-        if exits:
-
-            user = User.objects.get(phone=int(request.data["phone"]))
-            user.set_password = request.data["password"]
-            user.save()
-
-            return Response(status=status.HTTP_202_ACCEPTED)
-
-        return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
