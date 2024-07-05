@@ -21,7 +21,7 @@ class OrderListCreateAPIView(APIView):
     def post(self, request):
         serializer = OrderSerializer(data=request.data)
         if serializer.is_valid():
-                serializer.save()
+                serializer.save(user=request.user)
                 sms_ir = SmsIr(
                 "o1Affme8CeJfdW8OuPMv1qo1f1JKDIy0vT7MKLvJvfkF6pgnre2ugXghVeAdQcKz",
                 30007732011682,
