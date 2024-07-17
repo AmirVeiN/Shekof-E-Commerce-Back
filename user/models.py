@@ -27,6 +27,17 @@ class User(AbstractUser):
         return f"{self.phone}"
 
 
+class Adresses(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    ostan = models.CharField(max_length=40)
+    shahr = models.CharField(max_length=40)
+    adress = models.CharField(max_length=100)
+    postalCode = models.CharField(max_length=20)
+
+    def __str__(self):
+        return f"{self.adress}"
+
+
 class PhoneCode(models.Model):
     phone = models.IntegerField()
     code = models.IntegerField()

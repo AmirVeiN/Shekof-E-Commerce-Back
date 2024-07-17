@@ -11,7 +11,7 @@ from sms_ir import SmsIr
 import jwt
 from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import AccessTokenSerializer, UserFillSerializer, UserSerializer
+from .serializers import AccessTokenSerializer, AdminUserSerializer, UserFillSerializer, UserSerializer
 
 class SendCode(APIView):
 
@@ -134,6 +134,41 @@ class UserInformation(APIView):
             serializer = UserSerializer(user)
 
             return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+class GetAllUsers(APIView):
+
+    permission_classes = [IsTypeOneUser]
+
+    def get(self, request, format=None):
+        
+        try:
+            model = User.objects.all()
+            
+            serializer = AdminUserSerializer(model, many=True)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        
+class Address(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, format=None):
+        
+        try:
+            user = User.objects.get(pk=request.user.id)
+
+            serializer = AdminUserSerializer(user, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+
+            return Response({"ok" : "user updated"}, status=status.HTTP_201_CREATED)
 
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)

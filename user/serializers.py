@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from user.models import User, PhoneCode
+from order.serializers import OrderSerializer
+from user.models import Adresses, User, PhoneCode
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -44,3 +45,33 @@ class UserFillSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
         )
+
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Adresses
+        fields = ["id", "ostan", "shahr", "adress", "postalCode"]
+
+
+class AdminUserSerializer(serializers.ModelSerializer):
+    date_joined = serializers.SerializerMethodField()
+    addresses = AddressSerializer(many=True, read_only=True, source="adresses_set")
+    orders = OrderSerializer(many=True, read_only=True, source="order_set")
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "phone",
+            "email",
+            "codeMeli",
+            "first_name",
+            "last_name",
+            "date_joined",
+            "user_type",
+            "addresses",
+            "orders",
+        )
+
+    def get_date_joined(self, obj):
+        return obj.date_joined.strftime("%Y-%m-%d %H:%M")
