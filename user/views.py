@@ -11,7 +11,7 @@ from sms_ir import SmsIr
 import jwt
 from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import AccessTokenSerializer, AdminUserSerializer, UserFillSerializer, UserSerializer
+from .serializers import AccessTokenSerializer, AddressSerializer, AdminUserSerializer, UserFillSerializer, UserSerializer
 
 class SendCode(APIView):
 
@@ -164,7 +164,7 @@ class Address(APIView):
         try:
             user = User.objects.get(pk=request.user.id)
 
-            serializer = AdminUserSerializer(user, data=request.data)
+            serializer = AddressSerializer(user, data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
 

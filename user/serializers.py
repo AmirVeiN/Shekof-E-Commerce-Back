@@ -44,6 +44,7 @@ class UserFillSerializer(serializers.ModelSerializer):
             "codeMeli",
             "first_name",
             "last_name",
+            "shaba",
         )
 
 

@@ -290,7 +290,6 @@ class ProductsDetails(APIView):
 
     def post(self, request):
         try:
-            print(request.data)
             product_ids = request.data.get("product_ids", None)
             if not product_ids:
                 return Response(

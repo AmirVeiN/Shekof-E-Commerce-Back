@@ -18,6 +18,7 @@ class User(AbstractUser):
     user_type = models.PositiveSmallIntegerField(
         choices=user_constants.USER_TYPE_CHOICES
     )
+    shaba = models.CharField(max_length=30, null=True, blank=True)
 
     USERNAME_FIELD = "phone"
 
