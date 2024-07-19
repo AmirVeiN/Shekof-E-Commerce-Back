@@ -48,15 +48,22 @@ class UserFillSerializer(serializers.ModelSerializer):
         )
 
 
-class AddressSerializer(serializers.ModelSerializer):
+class CreateAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Adresses
-        fields = ["id", "ostan", "shahr", "adress", "postalCode"]
+        fields = ["user", "id", "ostan", "shahr", "adress", "postalCode"]
+
+    def create(self, validated_data):
+        user = self.context["request"].user
+        address = Adresses.objects.create(user=user, **validated_data)
+        return address
 
 
 class AdminUserSerializer(serializers.ModelSerializer):
     date_joined = serializers.SerializerMethodField()
-    addresses = AddressSerializer(many=True, read_only=True, source="adresses_set")
+    addresses = CreateAddressSerializer(
+        many=True, read_only=True, source="adresses_set"
+    )
     orders = OrderSerializer(many=True, read_only=True, source="order_set")
 
     class Meta:

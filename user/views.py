@@ -4,14 +4,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
-from user.models import PhoneCode, User
+from user.models import PhoneCode, User, Adresses
 from user.permissions import IsTypeOneUser
 from user.serializers import CodePhoneSerializer
 from sms_ir import SmsIr
 import jwt
 from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import AccessTokenSerializer, AddressSerializer, AdminUserSerializer, UserFillSerializer, UserSerializer
+from .serializers import AccessTokenSerializer, AdminUserSerializer, CreateAddressSerializer, UserFillSerializer, UserSerializer
 
 class SendCode(APIView):
 
@@ -155,7 +155,7 @@ class GetAllUsers(APIView):
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         
         
-class Address(APIView):
+class CreateAddress(APIView):
 
     permission_classes = [IsAuthenticated]
 
@@ -164,11 +164,40 @@ class Address(APIView):
         try:
             user = User.objects.get(pk=request.user.id)
 
-            serializer = AddressSerializer(user, data=request.data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-
-            return Response({"ok" : "user updated"}, status=status.HTTP_201_CREATED)
+            serializer = CreateAddressSerializer(data=request.data, context={'request': request})
+            
+            if serializer.is_valid():
+                
+                serializer.save()
+            
+                return Response({"ok" : "user updated"}, status=status.HTTP_201_CREATED)
+            
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+    def get(self, request):
+        
+        user = request.user
+        if not user.is_authenticated:
+            return Response(
+                {"error": "User is not authenticated"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        addresses = Adresses.objects.filter(user=user)
+        serializer = CreateAddressSerializer(addresses, many=True)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request):
+        
+        try:
+            address = Adresses.objects.get(pk=request.data['pk'], user=request.user)
+            
+        except Adresses.DoesNotExist:
+            return Response({'error': 'Address not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        address.delete()
+        return Response({"ok": "Address deleted"}, status=status.HTTP_204_NO_CONTENT)
