@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from product.serializers import ProductSerializer
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 
 
 def importData(request):
@@ -196,7 +197,7 @@ class ProductsFilter(APIView):
     permission_classes = []
 
     def post(self, request):
-        filters = {}
+        filters = Q()
 
         try:
             in_stock = request.data.get("inStock", None)
@@ -212,23 +213,26 @@ class ProductsFilter(APIView):
             )
 
         if in_stock is not None:
-            filters["InStock"] = in_stock
-        if brand is not None:
-            filters["Brand"] = brand
-        if ram is not None:
-            filters["Ram"] = ram
-        if internal is not None:
-            filters["InternalMemory"] = internal
+            filters &= Q(InStock=in_stock)
+        if brand and isinstance(brand, list):
+            filters &= Q(Brand__in=brand)
+        if ram and isinstance(ram, list) and all(isinstance(r, int) for r in ram):
+            filters &= Q(Ram__in=ram)
+        if (
+            internal
+            and isinstance(internal, list)
+            and all(isinstance(i, int) for i in internal)
+        ):
+            filters &= Q(InternalMemory__in=internal)
         if price_min is not None and price_max is not None:
-            filters["Price__range"] = (price_min, price_max)
+            filters &= Q(Price__range=(price_min, price_max))
 
         if not filters:
             return Response(
                 {"message": "No filters provided"}, status=status.HTTP_200_OK
             )
 
-        q_object = Q(**filters)
-        products = Product.objects.filter(q_object)
+        products = Product.objects.filter(filters)
 
         serializer = ProductSerializer(products, many=True)
 
@@ -279,3 +283,43 @@ class Wishlist(APIView):
         serializer = ProductSerializer(products, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ProductsDetails(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        try:
+            product_ids = request.data.get("product_ids", None)
+            if not product_ids:
+                return Response(
+                    {"error": "Product IDs not provided"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if not isinstance(product_ids, list):
+                return Response(
+                    {"error": "Product IDs should be a list"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if not all(isinstance(id, int) for id in product_ids):
+                return Response(
+                    {"error": "All product IDs should be integers"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            products = Product.objects.filter(pk__in=product_ids)
+
+            if not products.exists():
+                return Response(
+                    {"error": "No products found with the provided IDs"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            serializer = ProductSerializer(products, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except KeyError:
+            return Response(
+                {"error": "Missing required parameters"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
