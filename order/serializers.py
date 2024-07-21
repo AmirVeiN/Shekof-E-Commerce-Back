@@ -29,8 +29,6 @@ class OrderSerializer(serializers.ModelSerializer):
             "compony",
             "address",
             "postalCode",
-            "ostan",
-            "city",
             "phone",
             "email",
             "codeMeli",

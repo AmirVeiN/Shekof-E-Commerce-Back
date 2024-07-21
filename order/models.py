@@ -11,8 +11,6 @@ class Order(models.Model):
     compony = models.CharField(max_length=50, blank=True, null=True)
     address = models.ForeignKey(Adresses, on_delete=models.CASCADE)
     postalCode = models.CharField(max_length=50)
-    ostan = models.CharField(max_length=50)
-    city = models.CharField(max_length=50)
     phone = models.CharField(max_length=50)
     email = models.EmailField(max_length=50)
     codeMeli = models.CharField(max_length=50)
