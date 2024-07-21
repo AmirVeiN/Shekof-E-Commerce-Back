@@ -28,7 +28,6 @@ class OrderSerializer(serializers.ModelSerializer):
             "lastName",
             "compony",
             "address",
-            "postalCode",
             "phone",
             "email",
             "codeMeli",
